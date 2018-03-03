@@ -1,8 +1,8 @@
 var mongoose = require('mongoose');
 
-var BookSchema = new mongoose.Schema({
-  isbn: String,
-  title: String,
+var travelSchema = new mongoose.Schema({
+  destination: String,
+  date: String,
   author: String,
   description: String,
   published_year: Number,
@@ -10,4 +10,4 @@ var BookSchema = new mongoose.Schema({
   updated_date: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model('Book', BookSchema);
+module.exports = mongoose.model('Book', travelSchema);
