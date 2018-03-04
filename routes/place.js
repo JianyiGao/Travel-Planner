@@ -22,7 +22,7 @@ router.post('/getDirections', function(req, res){
 });
 
 router.post('/planTrip', function(req, res){
-  let dests = req.body.destinations;
+  var dests = req.body.destinations;
   var store = new Map();
   for(let i=0; i < dests.length-1; i++){
     let minRoute = Number.MAX_SAFE_INTEGER;
@@ -47,14 +47,53 @@ router.post('/planTrip', function(req, res){
     time += i;
   }
   var bestRoute = new Array(dests.length);
+  bestRoute.fill(dests.length);
+  var usedDests = new Array(dests.length);
   doSleep(function(){
-    console.log(bestRoute);
+    let k = 0;
+    for(let i=0; i<dests.length; i++){
+      let minVar = Number.MAX_SAFE_INTEGER;
+      store.forEach(function(value, key){
+        let destPair = key.split("~");
+        if(dests[k] === destPair[0]){
+          if(value.distance.intVal < minVar){
+            let index = dests.indexOf(destPair[1]);
+            if(!usedDests[index]){
+              minVar = value.distance.intVal;
+              if(bestRoute[k]<dests.length)
+                usedDests[bestRoute[k]] = false;
+              bestRoute[k] = index;
+              usedDests[index] = true;
+            }
+          }
+        } else if(dests[k] === destPair[1]){
+          if(value.distance.intVal < minVar){
+            let index = dests.indexOf(destPair[0]);
+            if(!usedDests[index]){
+              minVar = value.distance.intVal;
+              if(bestRoute[k]<dests.length)
+                usedDests[bestRoute[k]] = false;
+              bestRoute[k] = index;
+              usedDests[index] = true;
+            }
+          }
+        }
+      });
+      k = bestRoute[k];
+    }
     let obj = {};
-    store.forEach(function(value, key){
-      obj[key] = value;
-    });
+    let nextDest = dests[0];
+    for(let i=0; i<dests.length; i++){
+      let key = dests[i]+'~'+dests[bestRoute[i]];
+      if(store.get(key))
+        obj[key] = store.get(key);
+      else {
+        let alternateKey = dests[bestRoute[i]]+'~'+dests[i];
+        obj[key] = store.get(alternateKey);
+      }
+    }
     res.json(obj);
-  }, 500 * time);
+  }, 600 * time);
 });
 
 function doSleep(callback, ms) {
